@@ -3,6 +3,7 @@ import { Button, Container, Form, FormControl, Nav, Navbar, NavDropdown } from '
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
 import Api, { endpoints } from '../configs/Api';
+import cookies from 'react-cookies';
 
 const Header = () => {
     const [categories, setCategories] = useState([])
@@ -27,11 +28,17 @@ const Header = () => {
 
     const logout = (event) => {
         event.preventDefault()
+        cookies.remove('access_token')
+        cookies.remove('current_user')
         dispatch({"type": "logout"})
         nav("/login")
     }
 
-    let btn = <Link to="/login" className="nav-link text-info">Dang nhap</Link>
+    let btn = <>
+        <Link to="/login" className="nav-link text-info">Dang nhap</Link>
+        <Link to="/register" className="nav-link text-danger">Dang ky</Link>
+    </>
+    
     if (user != null) {
         btn = <>
             <Link to="/" className="nav-link text-info">Welcome {user.username}!</Link>

@@ -1,23 +1,43 @@
 import React, { useContext, useState } from 'react'
-import { Container, Form, Button } from 'react-bootstrap'
+import { Container, Form, Button, Alert } from 'react-bootstrap'
 import { UserContext } from '../App'
 import { Navigate } from 'react-router-dom'
+import Api, { authAxios, endpoints } from '../configs/Api'
+import cookies from 'react-cookies'
 
-const Login = () => {
+const Login =  () => {
     const [username, setUsername] = useState()
     const [password, setPassword] = useState()
+    const [errMsg, setErrMsg] = useState(null)
     const [user, dispatch] = useContext(UserContext)
 
-    const login = (event) => {
+    const login = async (event) => {
         event.preventDefault()
 
-        if (username === "admin" && password === "123") {
-            dispatch({
-                "type": "login",
-                "payload": {
-                    "username": "admin"
-                }
+        try {
+            const res = await Api.post(endpoints['login'], {
+                'client_id': 'Vbe8euZZQJoWJ2UzW9wDThg4hJEZHHbhFmnfj7UR',
+                'client_secret': 'cVm4w4hSdy4MtwbP4KuNgXkGPeQJ9yrQdBvXHGR6b3e97F2bYqQ81XJ49FEufzjcw4SKwpuOZQiCLsNelHY1MkuYTGBRcSqtWmSlebSUk27WfyDskCB2VeCQihnEKdZ2',
+                'username': username,
+                'password': password,
+                'grant_type': 'password'
             })
+
+            if(res.status == 200) {
+                console.info(res.data)
+                cookies.save('access_token', res.data.access_token)
+        
+                const user = await authAxios().get(endpoints['current_user'])
+                cookies.save('current_user', user.data)
+                dispatch({
+                    "type": "login",
+                    "payload": user.data
+                })
+            }
+        }
+        catch (err) {
+            console.info(err)
+            setErrMsg('Username hoac password khong dung')
         }
     }
 
@@ -27,6 +47,11 @@ const Login = () => {
     return (
         <Container>
             <h1 className="text-center text-danger">DANG NHAP</h1>
+
+            {errMsg !== null && <Alert key='danger' variant='danger'>
+                {errMsg}
+            </Alert>}
+
             <Form onSubmit={login}>
             <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Label>Username</Form.Label>
